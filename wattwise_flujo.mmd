@@ -1,0 +1,59 @@
+flowchart TD
+    A([Inicio]) --> B["Usuario entra a la app web<br/>desde celular o computador"]
+    B --> C{"¿Tiene cuenta?"}
+    C -- No --> D["Registro de usuario"]
+    C -- Sí --> E["Inicio de sesión"]
+    D --> F
+    E --> F["Subir factura en PDF digital<br/>EPM o Enel"]
+
+    %% Captura y extracción
+    F --> G{"¿El PDF tiene<br/>texto seleccionable?"}
+    G -- No --> G1["Avisar: foto o escaneo no soportado<br/>OCR queda para etapas posteriores"]
+    G1 --> F
+    G -- Sí --> H["Extracción sin IA<br/>pdfplumber / pypdf + regex"]
+    H --> I["Variables: kWh, periodo, valor total,<br/>estrato, tipo de lectura, tarifa"]
+    I --> J{"¿El usuario confirma<br/>los datos extraídos?"}
+    J -- No --> J1["Usuario corrige los campos"]
+    J1 --> J
+    J -- Sí --> K{"¿Cuestionario del hogar<br/>ya respondido?"}
+
+    %% Cuestionario
+    K -- No / quiere actualizar --> L["Cuestionario: municipio, equipos,<br/>horas de uso, estado de equipos,<br/>hábitos y presupuesto"]
+    K -- Sí --> M
+    L --> M[("Supabase PostgreSQL<br/>usuario, historial de consumos,<br/>respuestas, planes")]
+
+    %% Análisis determinístico
+    M --> N["Módulo de análisis determinístico"]
+    N --> N1["Comparar con consumo histórico<br/>y detectar desviaciones"]
+    N --> N2["Estimar consumo por equipo<br/>E = P × h × d"]
+    N --> N3["Detectar posible consumo fantasma"]
+    N --> N4{"Altitud del municipio<br/>≥ 1.000 m.s.n.m."}
+    N4 -- Sí --> N5["Umbral de subsistencia 130 kWh-mes"]
+    N4 -- No --> N6["Umbral de subsistencia 173 kWh-mes"]
+    N5 --> O
+    N6 --> O{"¿Estrato 1-3 y consumo proyectado<br/>cerca o sobre el umbral?"}
+    O -- Sí --> O1["Generar alerta de subsidio"]
+    O -- No --> P
+    O1 --> P
+    N1 --> P
+    N2 --> P
+    N3 --> P["Armar JSON con datos limpios y resultados<br/>sin nombre, dirección ni PDF"]
+
+    %% IA generativa
+    P --> Q["API del modelo de lenguaje<br/>Gemini Flash o Llama en Groq"]
+    Q --> R["Diagnóstico pedagógico<br/>y recomendaciones redactadas"]
+    R --> S["Plan de ahorro priorizado según presupuesto<br/>ahorro estimado en kWh y en pesos"]
+    S --> T["Rotular cada dato: leído, estimado,<br/>simulado o verificado"]
+    T --> U["Guardar plan entregado"]
+    U --> M
+    U --> V["Mostrar: Mi consumo y Plan de ahorro"]
+
+    %% Verificación al mes siguiente
+    V --> W["Usuario aplica el plan durante el mes"]
+    W --> X["Llega nueva factura<br/>y el usuario la sube"]
+    X --> Y["Comparar ahorro estimado<br/>vs. ahorro verificado"]
+    Y --> Z{"¿Se cumplió el<br/>ahorro esperado?"}
+    Z -- Sí --> Z1["Reforzar acciones efectivas"]
+    Z -- No --> Z2["Ajustar plan y recomendaciones"]
+    Z1 --> H
+    Z2 --> H

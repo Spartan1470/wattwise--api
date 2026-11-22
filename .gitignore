@@ -1,0 +1,35 @@
+# Secretos (nunca subir)
+.env
+.env.*
+!.env.example
+
+# Entornos y caché
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE / SO
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Facturas reales y reportes con datos de usuarios (Ley 1581)
+facturas epm/
+data/facturas_epm/*.pdf
+data/facturas_epm/*.PDF
+data/inspect_pdfs_report.json
+
+# Artefactos locales opcionales
+*.tmp

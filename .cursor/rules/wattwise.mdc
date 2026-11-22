@@ -1,0 +1,34 @@
+---
+description: Reglas de arquitectura, IA híbrida, privacidad y contratos para WattWise API
+globs: ["**/*.py", "**/*.json", "**/*.md"]
+alwaysApply: true
+---
+
+# Reglas de Desarrollo — WattWise Backend API
+
+## 1. Stack y Dependencias Obligatorias
+- Python 3.11+, FastAPI, Uvicorn, Pydantic v2 (`pydantic>=2.0`).
+- Extracción PDF: `pdfplumber` + `re` (expresiones regulares). PROHIBIDO usar LLMs o OCR pesado para leer PDFs.
+- Machine Learning: `scikit-learn`, `numpy`, `pandas`, `joblib`.
+- IA Generativa: SDK oficial `google-genai` (`from google import genai`, `from google.genai import types`). NUNCA usar el paquete obsoleto `google-generativeai`.
+- Modelo LLM por defecto: `gemini-2.5-flash` con `response_mime_type="application/json"` y `response_schema` basado en Pydantic.
+
+## 2. Principio de Arquitectura Híbrida (Cero Alucinaciones)
+- **Separación estricta:** Todos los cálculos matemáticos (kWh, pesos COP, umbral de subsistencia, consumo por equipo, consumo fantasma, detección de anomalías ML, predicción del próximo mes y optimización de acciones) se ejecutan en Python determinístico y `scikit-learn` ANTES de invocar a Gemini.
+- **Rol de Gemini:** Recibe únicamente un JSON limpio con métricas ya calculadas y fragmentos legales del Mini-RAG. Gemini solo redacta explicaciones pedagógicas, desglosa cobros confusos y justifica el plan de ahorro sin inventar ni recalcular cifras.
+- **Trazabilidad obligatoria:** Todo valor numérico retornado al frontend debe incluir su etiqueta de origen: `"leido"`, `"estimado"`, `"simulado"` o `"verificado"`.
+
+## 3. Privacidad y Cumplimiento Legal (Ley 1581 de 2012 - Colombia)
+- El backend es 100 % **stateless** (no tiene base de datos propia; la persistencia vive en el frontend/Supabase del equipo cliente).
+- Al procesar un PDF en `/extract-pdf`, el archivo se lee en memoria (`BytesIO`) y jamás se guarda en disco ni se loguea.
+- Nunca extraer, almacenar ni enviar a Gemini: nombre del titular, cédula/NIT, dirección de cobro ni número de contrato.
+
+## 4. Integración y Resiliencia
+- Habilitar `CORSMiddleware` con `allow_origins=["*"]`, `allow_methods=["*"]`, `allow_headers=["*"]`.
+- Implementar fallback seguro en `ai_advisor.py`: si la API de Gemini falla por cuota o red, retornar un diagnóstico determinístico estructurado respetando exactamente el mismo `AnalyzeResponse` schema para que la demo nunca se caiga.
+
+## 5. Contratos (no divergir)
+- JSON de `app/schemas.py` = `docs/PRD.md`. Nombres: `ExtractPDFResponse`, `AnalyzeRequest`, `AnalyzeResponse`.
+- Cuestionario de 8 preguntas y regex EPM: `docs/CONTEXT.md`.
+- Endpoints de producto: `POST /extract-pdf` y `POST /analyze`. PDF sin texto (< 50 chars) → HTTP 422.
+- Gemini no ve el PDF ni PII. `narrativa_ia` se llena al final, con el JSON ya calculado + Mini-RAG.

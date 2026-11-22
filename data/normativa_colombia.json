@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "descripcion": "Mini-RAG WattWise: UPME 0355, Ley 142, cobros EPM y subsidios.",
+  "chunks": [
+    {
+      "id": "upme-0355-art1",
+      "titulo": "Consumo de subsistencia UPME 0355",
+      "fuente": "Resolución UPME 355 de 2004, artículo 1",
+      "texto": "Se define como consumo de subsistencia la cantidad mínima de electricidad utilizada en un mes por un usuario típico para satisfacer las necesidades básicas que solamente puedan ser satisfechas mediante esta forma de energía final. Se establece en 173 kWh-mes para alturas inferiores a 1.000 m s.n.m. y en 130 kWh-mes para alturas iguales o superiores a 1.000 m s.n.m."
+    },
+    {
+      "id": "upme-0355-art3",
+      "titulo": "Altura de la cabecera municipal",
+      "fuente": "Resolución UPME 355 de 2004, artículo 3",
+      "texto": "Para aplicar el consumo de subsistencia se toma la altura sobre el nivel del mar que reporte el IGAC para la cabecera municipal. Medellín, Envigado, Sabaneta, Itagüí, Bello, Rionegro y Bogotá están a 1.000 m o más (umbral 130 kWh). Apartadó, Barranquilla, Cartagena y Santa Marta están por debajo (umbral 173 kWh)."
+    },
+    {
+      "id": "subsidio-estratos",
+      "titulo": "Subsidio solo para estratos 1 a 3",
+      "fuente": "Ley 142 de 1994 y práctica tarifaria EPM / CREG",
+      "texto": "El subsidio de subsistencia aplica únicamente a estratos 1, 2 y 3 sobre el bloque de umbral. En la práctica EPM: 60 %, 50 % y 15 % respectivamente. Estrato 4 no tiene subsidio ni contribución. Estratos 5 y 6 pagan contribución del 20 %. Todo kWh por encima del umbral se cobra a tarifa plena (CU sin subsidio)."
+    },
+    {
+      "id": "excedente-umbral",
+      "titulo": "Ilusión de ahorro al bajar kWh pero seguir sobre 130",
+      "fuente": "Lectura pedagógica de UPME 0355",
+      "texto": "Una factura puede mostrar que el consumo disminuyó (por ejemplo de 174 a 166 kWh) y aun así, en un municipio a 1.000 m o más, 36 kWh se pagan sin subsidio porque el umbral es 130 kWh. El sobrecosto perdido es kWh_excedente × CU × porcentaje de subsidio del estrato."
+    },
+    {
+      "id": "ley-142-lectura",
+      "titulo": "Lectura estimada o promediada",
+      "fuente": "Ley 142 de 1994 (servicios públicos domiciliarios)",
+      "texto": "Si el tipo de lectura es estimada o promediada, el usuario tiene derecho a exigir revisión y ajuste contra la lectura real del medidor. Esa factura no debe usarse como verificación de ahorro (Mes 2) hasta que exista lectura real."
+    },
+    {
+      "id": "epm-cuentas-vencidas",
+      "titulo": "Cuentas vencidas en la factura EPM",
+      "fuente": "Anatomía de la factura EPM",
+      "texto": "El renglón Cuentas Vencidas es deuda de ciclos anteriores, no consumo de energía del periodo actual. Sumarlo mentalmente al kWh del mes distorsiona el costo de la luz. Debe mostrarse aparte del valor de energía."
+    },
+    {
+      "id": "epm-otras-entidades",
+      "titulo": "Otras entidades",
+      "fuente": "Anatomía de la factura EPM / Ley 142",
+      "texto": "Otras entidades agrupa seguros, créditos y financiaciones de electrodomésticos u otros terceros. Son independientes del consumo energético del ciclo. No deben confundirse con el costo del kWh ni con el subsidio de subsistencia."
+    },
+    {
+      "id": "epm-total-pagar",
+      "titulo": "Total a pagar versus valor de energía",
+      "fuente": "Hallazgos WattWise sobre facturas reales EPM",
+      "texto": "El total a pagar de EPM integra energía, acueducto, alcantarillado, gas, cuentas vencidas y otras entidades. El porcentaje de energía sobre el total suele ser minoritario. Un total alto no implica, por sí solo, un consumo eléctrico excesivo."
+    },
+    {
+      "id": "estrato-provisional",
+      "titulo": "Estrato provisional",
+      "fuente": "Práctica EPM de facturación",
+      "texto": "Estrato: Provisional indica clasificación temporal mientras se actualiza el catastro o la estratificación municipal. El subsidio puede aplicarse de forma transitoria. El usuario debe verificar su estrato definitivo en el municipio."
+    },
+    {
+      "id": "formula-equipos",
+      "titulo": "Fórmula E = P × h × d",
+      "fuente": "Cartilla EPM y cuestionario WattWise",
+      "texto": "El consumo mensual de un equipo se estima como potencia en kW por horas al día por días facturados. La nevera puede usarse con kWh/mes de la etiqueta; si el empaque no cierra bien se aplica un 30 % adicional por fuga térmica."
+    },
+    {
+      "id": "standby",
+      "titulo": "Consumo fantasma",
+      "fuente": "Cartilla EPM de uso del servicio de energía",
+      "texto": "Equipos con piloto, reloj o control remoto consumen en standby. WattWise usa vatios continuos 24/7: televisor 8 W, decodificador 15 W, cargadores 3 W, computador 10 W, router 12 W. Energía = (suma W / 1000) × 24 × días facturados."
+    },
+    {
+      "id": "nevera-empaque",
+      "titulo": "Nevera y empaque dañado",
+      "fuente": "Cuestionario del hogar WattWise / cartilla EPM",
+      "texto": "Una nevera con empaque que no cierra bien incrementa el consumo estimado en 30 %. Cambiar el empaque magnético es mantenimiento de alto impacto para volver al umbral de subsistencia. No se afirma hurto de energía."
+    },
+    {
+      "id": "creg-cu",
+      "titulo": "Costo unitario",
+      "fuente": "Metodología tarifaria CREG",
+      "texto": "El costo unitario (CU) del kWh lo publica el comercializador y cambia cada mes. Si el PDF no trae el CU explícito, WattWise usa valor_energia_cop / consumo_kwh. No se inventa una tarifa."
+    },
+    {
+      "id": "privacidad-1581",
+      "titulo": "Datos personales",
+      "fuente": "Ley 1581 de 2012",
+      "texto": "El backend WattWise es stateless. No extrae ni envía a Gemini el nombre del titular, cédula o NIT, dirección de cobro ni número de contrato. El PDF se procesa en memoria y no se guarda en disco."
+    },
+    {
+      "id": "mes-2",
+      "titulo": "Verificación ciclo a ciclo",
+      "fuente": "PRD WattWise",
+      "texto": "Mes 2 compara el consumo leído del ciclo anterior con el actual, normalizado a 30 días si los periodos difieren más de 20 %. El ahorro real se etiqueta verificado. Si no se cumple la meta, se reordena el plan de ahorro."
+    }
+  ]
+}
