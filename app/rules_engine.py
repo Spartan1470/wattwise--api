@@ -91,6 +91,19 @@ def _dias(factura: ExtractPDFResponse) -> int:
     return factura.dias_facturados or 30
 
 
+def _cerrar_suma(valores: list[float], objetivo: float, decimales: int) -> list[float]:
+    """Redondea y deja el ajuste de centésimas en el valor más grande para cerrar la suma."""
+    if not valores:
+        return []
+    factor = 10 ** decimales
+    redondeados = [round(v, decimales) for v in valores]
+    diff_u = int(round(objetivo * factor)) - int(round(sum(redondeados) * factor))
+    if diff_u != 0:
+        idx = max(range(len(valores)), key=lambda i: valores[i])
+        redondeados[idx] = round(redondeados[idx] + diff_u / factor, decimales)
+    return redondeados
+
+
 def desglosar(q: CuestionarioHogar, dias: int, consumo_factura: float | None) -> list[DesgloseEquipo]:
     filas: list[tuple[str, float]] = []
 
@@ -123,16 +136,37 @@ def desglosar(q: CuestionarioHogar, dias: int, consumo_factura: float | None) ->
     if watts > 0:
         filas.append(("Consumo fantasma (standby)", (watts / 1000.0) * 24.0 * dias))
 
-    total_est = sum(k for _, k in filas) or 1.0
-    denom = consumo_factura if consumo_factura and consumo_factura > 0 else total_est
+    filas = [(nombre, kwh) for nombre, kwh in filas if kwh > 0]
+    if not filas:
+        return []
+
+    total_est = sum(kwh for _, kwh in filas)
+    # El medidor es el tope: si el perfil (P × h × d) suma más que la factura,
+    # se reparte el consumo real en la misma proporción. Si suma menos, el
+    # hueco queda como residuo y ningún porcentaje pasa de 100.
+    if consumo_factura and consumo_factura > 0 and total_est > consumo_factura:
+        factor = consumo_factura / total_est
+        kwhs = _cerrar_suma([kwh * factor for _, kwh in filas], consumo_factura, 2)
+        denom = consumo_factura
+        cerrar_pct = True
+    else:
+        kwhs = [round(kwh, 2) for _, kwh in filas]
+        denom = consumo_factura if consumo_factura and consumo_factura > 0 else total_est
+        cerrar_pct = False
+
+    if cerrar_pct:
+        pcts = _cerrar_suma([100.0 * kwh / denom for kwh in kwhs], 100.0, 1)
+    else:
+        pcts = [round(100.0 * raw / denom, 1) for _, raw in filas]
+
     return [
         DesgloseEquipo(
             equipo=nombre,
-            kwh_mes=round(kwh, 2),
-            porcentaje=round(100.0 * kwh / denom, 1),
+            kwh_mes=kwh,
+            porcentaje=pct,
             etiqueta="estimado",
         )
-        for nombre, kwh in filas
+        for (nombre, _), kwh, pct in zip(filas, kwhs, pcts)
         if kwh > 0
     ]
 
@@ -251,6 +285,8 @@ def analizar(req: AnalyzeRequest) -> ResultadoReglas:
     residuo = None
     if req.factura.consumo_kwh is not None:
         residuo = round(req.factura.consumo_kwh - estimado, 2)
+        if residuo < 0:
+            residuo = 0.0
     meta = META_PCT[req.cuestionario.meta_ahorro]
     return ResultadoReglas(
         resumen=resumen_financiero(req.factura),
